@@ -1,6 +1,5 @@
 package wumpusworld;
 
-
 /**
  * Contains starting code for creating your own Wumpus World agent.
  * Currently the agent only make a random decision each turn.
@@ -10,7 +9,7 @@ package wumpusworld;
 public class MyAgent implements Agent
 {
     private static int m_firstTime = 0;
-    private World w;
+    private World w;    
     int rnd;
     
     /**
@@ -125,9 +124,7 @@ public class MyAgent implements Agent
     
     private int MakeNextMove(int x, int y, int direction)
     {
-        //Check surrounding area of the player
-        //Solve first map without general code 
-       
+        //Check surrounding area of the player       
         //First time
         if(m_firstTime == 0)
         {
@@ -138,14 +135,21 @@ public class MyAgent implements Agent
         
         if(direction == World.DIR_RIGHT)
         {
-            //Current square, right, up, down, left
+            //Current square
             CheckSquare(x, y, direction);
             return 0;
         }
         
         if(direction == World.DIR_UP)
         {
-            //Current square, right, up, down, left
+            //Current square
+            CheckSquare(x, y, direction);
+            return 0;
+        }
+        
+        if(direction == World.DIR_LEFT)
+        {
+            //Current square
             CheckSquare(x, y, direction);
             return 0;
         }
@@ -153,33 +157,75 @@ public class MyAgent implements Agent
         return 0;          
     }
     
-    private void CheckSquare(int x, int y, int direction)
+    private int CheckSquare(int x, int y, int direction)
     {
-        if(direction == World.DIR_RIGHT)
-        {
-            if (w.hasBreeze(x, y)) 
-        {
+        System.out.println("Current square: " + String.valueOf(x) + ", " + String.valueOf(y));
+
+                if (w.hasBreeze(x, y)) {
             System.out.println("Square has breeze");
         }
-        
-        if (w.hasStench(x, y)) 
-        {
-            if(w.isUnknown(x + 1, y))
-                w.doAction(World.A_TURN_LEFT);
-                    
+
+        if (w.hasStench(x, y)) {
+            //Right
+            if (w.isValidPosition(x + 1, y)) {
+                System.out.println("Right square is valid");
+
+                if (w.isVisited(x + 1, y)) {
+                    System.out.println("Right square is visited");
+                } else {
+                    System.out.println("Right square is unknown");
+                }
+            }
+
+            //Left
+            if (w.isValidPosition(x - 1, y)) {
+                System.out.println("Left square is valid");
+
+                if (w.isVisited(x - 1, y)) {
+                    System.out.println("Left square is visited");
+                } else {
+                    System.out.println("Left square is unknown");
+                }
+            }
+
+            //Front
+            if (w.isValidPosition(x, y + 1)) {
+                System.out.println("Front square is valid");
+
+                if (w.isVisited(x, y + 1)) {
+                    System.out.println("Front square is visited");
+                } else {
+                    System.out.println("Front square is unknown");
+                }
+
+            }
+
+            //Down
+            if (w.isValidPosition(x, y - 1)) {
+                System.out.println("Down square is valid");
+
+                if (w.isVisited(x, y - 1)) {
+                    System.out.println("Down square is visited");
+                } else {
+                    System.out.println("Down square is unknown");
+                }
+            }
+
+//                if (w.isUnknown(x + 1, y) && w.isUnknown(x, y + 1)) 
+//                {
+//                    System.out.println("Squares are unknown, moving left");
+//                    w.doAction(World.A_TURN_LEFT);
+//                    w.doAction(World.A_TURN_LEFT);
+//                    w.doAction(World.A_MOVE);
+//                }            
         }
 
-        if (w.hasPit(x, y)) 
-        {
+        if (w.hasPit(x, y)) {
             System.out.println("Square has pit");
         }
-        }
+       
         
-        
-        
-   
-        
-        //Check surrounding of square
+        return 0;
     }
 }
 
