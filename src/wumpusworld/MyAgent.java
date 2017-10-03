@@ -1,5 +1,7 @@
 package wumpusworld;
 
+import java.util.Vector;
+
 /**
  * Contains starting code for creating your own Wumpus World agent.
  * Currently the agent only make a random decision each turn.
@@ -9,8 +11,27 @@ package wumpusworld;
 public class MyAgent implements Agent
 {
     private static int m_firstTime = 0;
-    private World w;    
+    private String m_perception;
+    private static Vector<String> m_sentences = new Vector<>();
+    private World w;
     int rnd;
+      
+    private enum Direction
+    {
+        UP(0),
+        RIGHT(1),
+        DOWN(2),
+        LEFT(3);  
+        
+        private int value;
+        private Direction(int value) {
+        this.value = value;
+    }
+
+    public int getValue() {
+        return value;
+    }
+    }
     
     /**
      * Creates a new instance of your solver agent.
@@ -82,11 +103,8 @@ public class MyAgent implements Agent
         
         //Player agent
         //w.doAction(World.A_MOVE);
-        MakeNextMove(cX, cY, w.getDirection());        
-        
-       
-        
-        
+        MakeNextMove(cX, cY, w.getDirection());
+            
         //decide next move
         //rnd = decideRandomMove();
 //        if (rnd==0)
@@ -123,7 +141,7 @@ public class MyAgent implements Agent
     }
     
     private int MakeNextMove(int x, int y, int direction)
-    {
+    {      
         //Check surrounding area of the player       
         //First time
         if(m_firstTime == 0)
@@ -135,97 +153,135 @@ public class MyAgent implements Agent
         
         if(direction == World.DIR_RIGHT)
         {
-            //Current square
-            CheckSquare(x, y, direction);
-            return 0;
+            String current, right, left;
+            
+            //Current square, right, left
+            current = PerceptSentence(x, y);
+            right = PerceptSentence(x + 1, y);
+            left = PerceptSentence(x - 1, y);
+            m_perception = left + ", " + current + ", " + right;
+            m_sentences.add(m_perception);
+            System.out.println(m_perception);
+            
+            if(m_perception.contentEquals("None, Stench, None"))
+            {
+                SetDirection(Direction.LEFT);                       
+                w.doAction(World.A_MOVE);
+            }
         }
         
         if(direction == World.DIR_UP)
         {
-            //Current square
-            CheckSquare(x, y, direction);
-            return 0;
+            String current, top, bottom;
+            
+            //Current square, top, bottom
+            //1. Construct sentence from perception
+            current = PerceptSentence(x, y);
+            top = PerceptSentence(x, y + 1);
+            bottom = PerceptSentence(x, y - 1);
+            m_perception = bottom + ", " + current + ", " + top;
+            m_sentences.add(m_perception);
+            System.out.println(m_perception);
+            
+            //2. Ask knowledge base what action to perform from the informaion
+            //available
+            
+            //3. Perform task from the action taken
+            
+            
+            if(m_perception.contentEquals("None, Stench, None"))
+            {           
+                w.doAction(World.A_MOVE);
+            }
+            
+            if(m_perception.contentEquals("Stench, Breeze, None"))
+            {           
+                SetDirection(Direction.RIGHT);
+                w.doAction(World.A_MOVE);
+            }
         }
         
         if(direction == World.DIR_LEFT)
         {
+            String current, left, right;
+            
             //Current square
-            CheckSquare(x, y, direction);
-            return 0;
+            current = PerceptSentence(x, y);
+            left = PerceptSentence(x - 1, y);
+            right = PerceptSentence(x + 1, y);
+            m_perception = left + ", " + current + ", " + right;
+            m_sentences.add(m_perception);
+            System.out.println(m_perception);
+            
+            if(m_perception.contentEquals("Invalid, None, Stench"))
+            {           
+                SetDirection(Direction.UP);
+                w.doAction(World.A_MOVE);
+            }
+        }
+        
+        if(direction == World.DIR_DOWN)
+        {
+            String current, top, down;
+            
+            //Current square
+            current = PerceptSentence(x, y);
+            top = PerceptSentence(x, y + 1);
+            down = PerceptSentence(x, y - 1);
+            m_perception = down + ", " + current + ", " + top;
+            m_sentences.add(m_perception);
+            System.out.println(m_perception);
         }
           
         return 0;          
     }
     
-    private int CheckSquare(int x, int y, int direction)
-    {
-        System.out.println("Current square: " + String.valueOf(x) + ", " + String.valueOf(y));
+    private String PerceptSentence(int x, int y)
+    {   
+        if(w.isValidPosition(x, y))
+        {      
+            if (w.hasBreeze(x, y)) 
+            {
+                return "Breeze";
+            }
 
-                if (w.hasBreeze(x, y)) {
-            System.out.println("Square has breeze");
+            if (w.hasStench(x, y)) 
+            {
+                return "Stench";
+            }
+
+            if (w.hasPit(x, y)) 
+            {
+                return "Pit";
+            }
+            
+            if(w.isUnknown(x, y))
+            {
+                return "None";
+            }
+            
+            if(w.isVisited(x, y))
+            {
+                return "None";
+            }
+            
+            if(w.getPlayerX() == 1 && w.getPlayerY() == 1)
+            {
+                return "Safe";
+            }       
         }
-
-        if (w.hasStench(x, y)) {
-            //Right
-            if (w.isValidPosition(x + 1, y)) {
-                System.out.println("Right square is valid");
-
-                if (w.isVisited(x + 1, y)) {
-                    System.out.println("Right square is visited");
-                } else {
-                    System.out.println("Right square is unknown");
-                }
-            }
-
-            //Left
-            if (w.isValidPosition(x - 1, y)) {
-                System.out.println("Left square is valid");
-
-                if (w.isVisited(x - 1, y)) {
-                    System.out.println("Left square is visited");
-                } else {
-                    System.out.println("Left square is unknown");
-                }
-            }
-
-            //Front
-            if (w.isValidPosition(x, y + 1)) {
-                System.out.println("Front square is valid");
-
-                if (w.isVisited(x, y + 1)) {
-                    System.out.println("Front square is visited");
-                } else {
-                    System.out.println("Front square is unknown");
-                }
-
-            }
-
-            //Down
-            if (w.isValidPosition(x, y - 1)) {
-                System.out.println("Down square is valid");
-
-                if (w.isVisited(x, y - 1)) {
-                    System.out.println("Down square is visited");
-                } else {
-                    System.out.println("Down square is unknown");
-                }
-            }
-
-//                if (w.isUnknown(x + 1, y) && w.isUnknown(x, y + 1)) 
-//                {
-//                    System.out.println("Squares are unknown, moving left");
-//                    w.doAction(World.A_TURN_LEFT);
-//                    w.doAction(World.A_TURN_LEFT);
-//                    w.doAction(World.A_MOVE);
-//                }            
+        else
+        {
+            return "Invalid";
         }
-
-        if (w.hasPit(x, y)) {
-            System.out.println("Square has pit");
-        }
-       
         
-        return 0;
+        return "";
+    }
+    
+    private void SetDirection(Direction direction)
+    {
+        while(w.getDirection() != direction.getValue())
+             w.doAction(World.A_TURN_LEFT);            
     }
 }
 
